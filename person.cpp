@@ -1,5 +1,16 @@
 #include "person.hpp"
+#include "globals.hpp"
+#include "error.hpp"
 int Person::num = 0;
+
+Spot::Spot(bool empty, const int x, const int y){
+	Logger logger;
+	person = new Person("empty");
+	(*person).empty = true;
+	(*person).name = "empty";
+	(*this).x = x;
+	(*this).y = y;
+}
 
 Spot::Spot(Person& p, const int x, const int y){
 	person = &p;
@@ -19,32 +30,26 @@ void Person::setFriends(const std::vector<int> fs){
 }
 
 int Person::getHappiness(){
+	if(empty)
+		return 0;
 	happiness = 0;
 	for(int i = 0; i < friends.size(); i++){
-		if(leftSet)
-			if(friends[i] == left->getID())
-				happiness += (friends.size() - i + 1);
-
-		if(rightSet)
-			if(friends[i] == right->getID())
-				happiness += (friends.size() - i + 1);
-
-		if(upSet)
-			if(friends[i] == up->getID())
-				happiness += (friends.size() - i + 1);
-		
-		if(downSet)
-			if(friends[i] == down->getID())
-				happiness += (friends.size() - i + 1);
-		
+		for(int j = 0; j < neighbours.size(); j++){
+			if(friends[i] == neighbours[j]->getID())
+				happiness += RANKED_FRIENDS ? friends.size() - i : 1;
+		}
 	}
 	return happiness;
 }
 
 int Person::getID(){
+	if(empty)
+		return -1;
 	return id;
 }
 
 std::string Person::getName(){
+	if(empty)
+		return "empty";
 	return name;
 }

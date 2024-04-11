@@ -4,48 +4,35 @@
 #define MAX_NUM 5
 SeatingConfig spotsToConfig(std::vector<std::vector<Spot>>);
 void SeatingConfig::linkPeople(){
+	if(!USE_LINK_MAP){
+		for(int y = 0; y < SIZE_Y; y++){
+			for(int x = 0; x < SIZE_X; x++){
+				twoDim(x, y).person->neighbours.clear();
+				if(x < SIZE_X - 1)
+					twoDim(x, y).person->neighbours.push_back(twoDim(x + 1, y).person);
+
+				if(x > 0)
+					twoDim(x, y).person->neighbours.push_back(twoDim(x - 1, y).person);
+				
+
+				if(y < SIZE_Y - 1)
+					twoDim(x, y).person->neighbours.push_back(twoDim(x, y + 1).person);
+
+				if(y > 0)
+					twoDim(x, y).person->neighbours.push_back(twoDim(x, y - 1).person);
+			}
+		}
+		return;
+	}
 	for(int y = 0; y < SIZE_Y; y++){
 		for(int x = 0; x < SIZE_X; x++){
-			if(x < SIZE_X - 1){
-				twoDim(x, y).person->right = twoDim(x + 1, y).person;
-				twoDim(x, y).person->rightSet = true;
-			}
-			else{
-				twoDim(x, y).person->right = twoDim(x, y).person;
-				twoDim(x, y).person->rightSet = false;
-			}
-
-			if(x > 0){
-				twoDim(x, y).person->left = twoDim(x - 1, y).person;
-				twoDim(x, y).person->leftSet = true;
-			}
-			else{
-				twoDim(x, y).person->left = twoDim(x, y).person;
-				twoDim(x, y).person->leftSet = false;
-			}
-			
-
-			if(y < SIZE_Y - 1){
-				twoDim(x, y).person->down = twoDim(x, y + 1).person;
-				twoDim(x, y).person->downSet = true;
-			}
-			else{
-				twoDim(x, y).person->down = twoDim(x, y).person;
-				twoDim(x, y).person->downSet = false;
-			}
-
-			if(y > 0){
-				twoDim(x, y).person->up = twoDim(x, y - 1).person;
-				twoDim(x, y).person->upSet = true;
-			}
-			else{
-				twoDim(x, y).person->up = twoDim(x, y).person;
-				twoDim(x, y).person->upSet = false;
-			}
+			twoDim(x, y).person->neighbours.clear();
+			twoDim(x, y).person->neighbours = LINKS[x][y];
 		}
 	}
 }
 int SeatingConfig::getHappiness(bool regen){
+	Logger logger;
 	if(!regen)
 		return sum;
 	sum = 0;
@@ -67,18 +54,19 @@ bool genNextConfig(SeatingConfig& ret, const int numPeople, const std::vector<Pe
 	ret.getHappiness(true);
 	for(int i = 0; i < PERMS; i++){
 		next[i] = current;
-		first = distrib(gen);
-		second = distrib(gen);
+		for(int j = 0; j < DIFF; j++){
+			first = distrib(gen);
+			second = distrib(gen);
 
-		temp = next[i].config[first].person;
-		next[i].config[first].person = next[i].config[second].person;
-		next[i].config[second].person = temp;
-		
+			temp = next[i].config[first].person;
+			next[i].config[first].person = next[i].config[second].person;
+			next[i].config[second].person = temp;
+		}
 		next[i].linkPeople();
 		next[i].getHappiness(true);
 		ret.linkPeople();
 		ret.getHappiness(true);
-		if (next[i].getHappiness() > ret.getHappiness()){
+		if ((next[i].getHappiness() > ret.getHappiness() && !MAXIMIZE_MISERY) || (next[i].getHappiness() < ret.getHappiness() && MAXIMIZE_MISERY)){
 			changed = true;
 			next[i].linkPeople();
 			ret = next[i];
@@ -89,8 +77,10 @@ bool genNextConfig(SeatingConfig& ret, const int numPeople, const std::vector<Pe
 
 void SeatingConfig::output(){
 	for(int y = 0; y < SIZE_Y; y++){
+		if(USE_LINK_MAP)
+			std::cout << "group: " << y + 1;
 		for(int x = 0; x < SIZE_X; x++){
-			std::cout << std::setw(10) << twoDim(x, y).person->name << " ";
+			std::cout << std::setw(10) << (*twoDim(x, y).person).getName() << " ";
 		}
 		std::cout << std::endl;
 	}

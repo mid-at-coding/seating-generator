@@ -1,3 +1,5 @@
+#ifndef PERSON_H
+#define PERSON_H
 #include <set>
 #include <vector>
 #include <string>
@@ -9,6 +11,7 @@ public:
 	Person* person;
 	Spot(Person& p, const int x, const int y);
 	Spot() {}
+	Spot(bool, const int, const int);
 	int getX();
 	int getY();
 };
@@ -17,29 +20,15 @@ class Person{
 	int id;
 	int happiness;
 public:
+	bool empty = false;
 	std::string name;
-	bool leftSet;
-	bool rightSet;
-	bool upSet;
-	bool downSet;
-	Person* left;
-	Person* right;
-	Person* up;
-	Person* down;
+	std::vector<Person*> neighbours;
 	std::vector<int> friends;
 	Person(const std::string& n){
-		leftSet = false;
-		rightSet = false;
-		downSet = false;
-		upSet = false;
 		id = num++;
 		name = n;
 	}
 	Person(){
-		leftSet = false;
-		rightSet = false;
-		downSet = false;
-		upSet = false;
 		id = num++;
 	}
 	void setFriends(const std::vector<int> fs);
@@ -47,4 +36,4 @@ public:
 	int getID();
 	std::string getName();
 };
-
+#endif
